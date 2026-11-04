@@ -1,0 +1,787 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1">
+<title>Recipe Box</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,400;0,9..144,600;0,9..144,700;1,9..144,500&family=Inter:wght@400;500;600;700&family=IBM+Plex+Mono:wght@500;600&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --paper:#FAF8F3;
+    --card:#FFFDF9;
+    --ink:#2B2B26;
+    --ink-soft:#63604F;
+    --mustard:#C89B3C;
+    --mustard-deep:#A97F27;
+    --sage:#5B6B4F;
+    --line:#E5DFCF;
+    --radius:14px;
+  }
+  *{box-sizing:border-box;}
+  body{
+    margin:0;
+    background:var(--paper);
+    color:var(--ink);
+    font-family:'Inter',sans-serif;
+    -webkit-font-smoothing:antialiased;
+    min-height:100vh;
+  }
+  header{
+    padding:28px 20px 18px;
+    position:sticky;
+    top:0;
+    background:var(--paper);
+    z-index:10;
+    border-bottom:1px solid var(--line);
+  }
+  .eyebrow{
+    font-family:'IBM Plex Mono',monospace;
+    font-size:11px;
+    letter-spacing:0.14em;
+    text-transform:uppercase;
+    color:var(--sage);
+    font-weight:600;
+    margin-bottom:4px;
+  }
+  h1{
+    font-family:'Fraunces',serif;
+    font-weight:700;
+    font-size:32px;
+    margin:0 0 16px;
+    letter-spacing:-0.01em;
+  }
+  .search-wrap{
+    position:relative;
+  }
+  #search{
+    width:100%;
+    padding:13px 16px 13px 40px;
+    border-radius:10px;
+    border:1px solid var(--line);
+    background:var(--card);
+    font-family:'Inter',sans-serif;
+    font-size:15px;
+    color:var(--ink);
+    outline:none;
+  }
+  #search:focus{border-color:var(--mustard);}
+  .search-icon{
+    position:absolute;
+    left:14px;
+    top:50%;
+    transform:translateY(-50%);
+    color:var(--ink-soft);
+    font-size:15px;
+    pointer-events:none;
+  }
+  main{
+    padding:20px 16px 60px;
+    max-width:640px;
+    margin:0 auto;
+  }
+  .grid{
+    display:grid;
+    grid-template-columns:1fr;
+    gap:14px;
+  }
+  @media(min-width:520px){
+    .grid{grid-template-columns:1fr 1fr;}
+  }
+  .rcard{
+    background:var(--card);
+    border:1px solid var(--line);
+    border-radius:var(--radius);
+    padding:18px 18px 16px;
+    cursor:pointer;
+    position:relative;
+    transition:transform .15s ease, box-shadow .15s ease;
+  }
+  .rcard:active{transform:scale(0.98);}
+  .tab{
+    display:inline-block;
+    font-family:'IBM Plex Mono',monospace;
+    font-size:10px;
+    letter-spacing:0.1em;
+    text-transform:uppercase;
+    font-weight:600;
+    color:var(--mustard-deep);
+    background:rgba(200,155,60,0.14);
+    border-radius:5px;
+    padding:3px 8px;
+    margin-bottom:10px;
+  }
+  .rcard h3{
+    font-family:'Fraunces',serif;
+    font-size:19px;
+    font-weight:600;
+    margin:0 0 8px;
+    line-height:1.25;
+  }
+  .meta{
+    display:flex;
+    gap:12px;
+    font-size:12.5px;
+    color:var(--ink-soft);
+    font-family:'IBM Plex Mono',monospace;
+  }
+  .empty{
+    text-align:center;
+    padding:60px 20px;
+    color:var(--ink-soft);
+    font-size:14px;
+  }
+
+  /* Detail view */
+  #detail{
+    display:none;
+    max-width:640px;
+    margin:0 auto;
+    padding:0 16px 60px;
+  }
+  .back{
+    display:inline-flex;
+    align-items:center;
+    gap:6px;
+    background:none;
+    border:none;
+    color:var(--sage);
+    font-family:'IBM Plex Mono',monospace;
+    font-size:12px;
+    font-weight:600;
+    letter-spacing:0.06em;
+    text-transform:uppercase;
+    cursor:pointer;
+    padding:20px 0 10px;
+  }
+  .detail-card{
+    background:var(--card);
+    border:1px solid var(--line);
+    border-radius:var(--radius);
+    padding:24px 22px 28px;
+  }
+  .detail-card h2{
+    font-family:'Fraunces',serif;
+    font-size:26px;
+    font-weight:700;
+    margin:0 0 10px;
+    line-height:1.2;
+  }
+  .detail-meta{
+    display:flex;
+    gap:16px;
+    flex-wrap:wrap;
+    font-family:'IBM Plex Mono',monospace;
+    font-size:12px;
+    color:var(--ink-soft);
+    margin-bottom:20px;
+    padding-bottom:18px;
+    border-bottom:1px dashed var(--line);
+  }
+  .detail-meta span strong{color:var(--ink);font-weight:600;}
+  h4.section{
+    font-family:'IBM Plex Mono',monospace;
+    font-size:11px;
+    letter-spacing:0.14em;
+    text-transform:uppercase;
+    color:var(--sage);
+    font-weight:600;
+    margin:22px 0 10px;
+  }
+  ul.ingredients{
+    list-style:none;
+    margin:0;
+    padding:0;
+  }
+  ul.ingredients li{
+    display:flex;
+    gap:10px;
+    padding:8px 0;
+    border-bottom:1px solid var(--line);
+    font-size:14.5px;
+  }
+  ul.ingredients li:last-child{border-bottom:none;}
+  .qty{
+    font-family:'IBM Plex Mono',monospace;
+    font-weight:600;
+    color:var(--mustard-deep);
+    min-width:64px;
+    flex-shrink:0;
+    font-size:13.5px;
+  }
+  ol.steps{
+    margin:0;
+    padding:0;
+    list-style:none;
+    counter-reset:step;
+  }
+  ol.steps li{
+    counter-increment:step;
+    display:flex;
+    gap:14px;
+    padding:12px 0;
+    font-size:14.5px;
+    line-height:1.55;
+  }
+  ol.steps li::before{
+    content:counter(step);
+    font-family:'Fraunces',serif;
+    font-weight:600;
+    font-size:15px;
+    color:var(--mustard);
+    background:rgba(200,155,60,0.14);
+    border-radius:50%;
+    width:26px;
+    height:26px;
+    flex-shrink:0;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+  }
+  .note{
+    margin-top:20px;
+    padding-top:16px;
+    border-top:1px dashed var(--line);
+    font-size:13px;
+    color:var(--ink-soft);
+    font-style:italic;
+  }
+</style>
+</head>
+<body>
+
+<header>
+  <div class="eyebrow">Recipe Box</div>
+  <h1>What's cooking</h1>
+  <div class="search-wrap">
+    <span class="search-icon">&#8981;</span>
+    <input id="search" type="text" placeholder="Search recipes or ingredients">
+  </div>
+</header>
+
+<main id="listView">
+  <div class="grid" id="grid"></div>
+  <div class="empty" id="empty" style="display:none;">No recipes match that search.</div>
+</main>
+
+<div id="detail"></div>
+
+<script>
+const recipes = [
+  {
+    id: "macaroni-cheese-bake",
+    title: "Macaroni Cheese Bake",
+    tag: "Bake",
+    servings: "2",
+    cookTime: "20-30 min",
+    calories: "846 cal / serving",
+    ingredients: [
+      { qty: "1 cup", name: "elbow macaroni noodles" },
+      { qty: "2", name: "eggs" },
+      { qty: "1 1/4 cups", name: "milk" },
+      { qty: "to taste", name: "salt and pepper" },
+      { qty: "1/8 tsp", name: "mustard powder" },
+      { qty: "1/2", name: "onion, chopped" },
+      { qty: "1 cup", name: "cheddar cheese, grated" },
+      { qty: "1", name: "tomato, sliced" }
+    ],
+    steps: [
+      "Cook macaroni according to package instructions. Preheat oven to 200°C.",
+      "Combine eggs, milk, salt, pepper, and mustard powder. Mix well.",
+      "Mix the onion and 3/4 cup of the cheese into the cooked macaroni in an oven dish, then pour the milk mixture over the top.",
+      "Cover with sliced tomato and sprinkle with the remaining cheese.",
+      "Bake for 20-30 minutes, or until set and golden brown."
+    ],
+    note: "Title and oven temperature unit assumed (°C) since the top of the source recipe was cropped. Let me know if you'd like these adjusted."
+  },
+  {
+    id: "oxo-beef-gravy",
+    title: "Simple One-Serve OXO Beef Gravy",
+    tag: "Sauce",
+    servings: "1",
+    cookTime: "5 min",
+    calories: "",
+    ingredients: [
+      { qty: "1", name: "beef OXO cube" },
+      { qty: "3/4 cup", name: "boiling water (about 180 ml)" },
+      { qty: "1 tbsp", name: "butter (approx. 15 g)" },
+      { qty: "1 tbsp", name: "plain flour (approx. 8 g)" },
+      { qty: "optional", name: "black pepper, dash of Worcestershire sauce, or pinch of garlic/onion powder" }
+    ],
+    steps: [
+      "Dissolve the cube: mix the beef OXO cube into 3/4 cup of boiling water and stir until fully dissolved.",
+      "Make a mini roux: in a small saucepan, melt the butter over medium heat.",
+      "Stir in the flour and cook for about 30 seconds to 1 minute, stirring constantly.",
+      "Whisk in the stock: slowly pour in the hot beef stock, whisking as you go to avoid lumps.",
+      "Bring to a gentle boil, then reduce heat and simmer for 1-2 minutes until thickened.",
+      "Season to taste with pepper or extras like Worcestershire sauce."
+    ]
+  },
+  {
+    id: "marry-me-chicken-pie",
+    title: "Marry Me Chicken Pot Pie",
+    tag: "Bake",
+    servings: "4",
+    cookTime: "35-40 min",
+    calories: "",
+    ingredients: [
+      { qty: "4", name: "potato, diced 2cm" },
+      { qty: "1/4 cup", name: "milk" },
+      { qty: "2 tbsp", name: "butter" },
+      { qty: "80g", name: "Sicilian pesto" },
+      { qty: "125g", name: "sour cream" },
+      { qty: "100g", name: "baby spinach" },
+      { qty: "90g", name: "grated cheese" },
+      { qty: "1", name: "carrot, grated" },
+      { qty: "1", name: "garlic clove, minced" },
+      { qty: "600g", name: "free range chicken breast, diced 2cm" },
+      { qty: "2 tbsp", name: "flour" },
+      { qty: "1 drizzle", name: "oil" },
+      { qty: "1/2 pack", name: "smoked paprika" },
+      { qty: "1/2 cup", name: "chicken stock" },
+      { qty: "optional", name: "pinch of chilli flakes, to serve" }
+    ],
+    steps: [
+      "Mash it: preheat oven to high grill. Dice potatoes 2cm, add to a pot, and cover with hot tap water and a pinch of salt.",
+      "Cook on high heat at a rolling boil for 15-20 minutes, until very tender. Drain and return to pot with milk and butter. Mash until smooth and season to taste with salt and pepper.",
+      "Cook it: meanwhile, grate the carrot and mince the garlic. Heat oil in an ovenproof frypan on medium-high.",
+      "Cook chicken, carrot, garlic, flour, and smoked paprika for about 6 minutes, until browned.",
+      "Grill it: add stock and bring to the boil. Simmer for 2-3 minutes, until thickened and chicken is cooked through.",
+      "Remove pan from heat and stir through Sicilian pesto, sour cream, and spinach. Season to taste with salt and pepper.",
+      "Transfer chicken mixture to a baking dish if needed. Top with potato mash, using a fork to make deep grooves into the topping. Sprinkle with cheese.",
+      "Grill for 3-5 minutes, until cheese is golden.",
+      "Eat it: plate up the chicken pie, sprinkle over chilli flakes if you want, and dig in."
+    ],
+    note: "No dish title was printed on the card, so I named it based on the recipe components. Let me know if you'd like it changed. Quantities shown are the 4-person version as requested."
+  },
+  {
+    id: "hot-buttered-thunderdonk",
+    title: "Hot Buttered Thunderdonk",
+    tag: "Drink",
+    servings: "5",
+    cookTime: "20 min + 1-2 hr chill",
+    calories: "",
+    ingredients: [
+      { qty: "115g", name: "unsalted butter, softened" },
+      { qty: "200g", name: "brown sugar, packed" },
+      { qty: "250ml", name: "vanilla ice cream, softened" },
+      { qty: "1 tsp", name: "ground cinnamon" },
+      { qty: "1/2 tsp", name: "ground nutmeg" },
+      { qty: "1/8 tsp", name: "ground cloves" },
+      { qty: "1 tsp", name: "vanilla extract" },
+      { qty: "1/4 tsp", name: "fine salt" },
+      { qty: "45ml", name: "whisky, per serving" },
+      { qty: "180ml", name: "hot water, per serving" },
+      { qty: "2 tbsp", name: "spiced butter batter, per serving (from step 1)" },
+      { qty: "150ml", name: "whipped cream, for topping" },
+      { qty: "5", name: "cinnamon sticks, for garnish" }
+    ],
+    steps: [
+      "Make the spiced butter batter: beat together the butter and brown sugar until creamy. Mix in the vanilla ice cream, cinnamon, nutmeg, cloves, vanilla extract, and salt until fully combined.",
+      "Cover and freeze the batter until firm enough to scoop, about 1 to 2 hours. It will keep in the freezer for later batches.",
+      "For each serving, bring the hot water to a near boil in a kettle or saucepan.",
+      "Add 2 tbsp of the batter and the whisky to a heatproof mug.",
+      "Pour the hot water over the batter and whisky. Stir well until the batter has fully melted and the drink is smooth.",
+      "Finish with a dollop of whipped cream and a cinnamon stick per mug. Serve immediately."
+    ],
+    note: "Recreated from the Hot Buttered Thunderdonk on the Amara's Own menu, using classic hot buttered rum technique with whisky in place of the house Thunderdonk Whisky. Batter makes about 5 servings and keeps frozen for later batches."
+  },
+  {
+    id: "milk-tart",
+    title: "Milk Tart",
+    tag: "Bake",
+    servings: "8 shells / 2 fillings",
+    cookTime: "",
+    calories: "",
+    ingredients: [
+      { qty: "250g", name: "margarine (pastry)" },
+      { qty: "4 tbsp", name: "custard powder (pastry)" },
+      { qty: "2 tsp", name: "baking powder (pastry)" },
+      { qty: "1 cup", name: "sugar (pastry)" },
+      { qty: "4 cups", name: "flour (pastry)" },
+      { qty: "1/2 tsp", name: "salt (pastry)" },
+      { qty: "2", name: "eggs (pastry)" },
+      { qty: "4 cups", name: "milk (filling)" },
+      { qty: "1 tbsp", name: "cornflour, rounded (filling)" },
+      { qty: "2 tbsp", name: "flour, rounded (filling)" },
+      { qty: "1 tsp", name: "vanilla essence (filling)" },
+      { qty: "3/4 cup", name: "sugar (filling)" },
+      { qty: "2", name: "eggs (filling)" },
+      { qty: "2 tbsp", name: "margarine (filling)" },
+      { qty: "to taste", name: "ground cinnamon, for sprinkling" }
+    ],
+    steps: [
+      "Pastry: cream the margarine and sugar together, then add the eggs and beat well.",
+      "Sift the custard powder, baking powder, flour, and salt together, then combine into the creamed mixture.",
+      "Press the pastry into 8 pie plates to form shells. Extra shells can be frozen until needed.",
+      "Filling: beat the flour, cornflour, sugar, eggs, and vanilla essence together.",
+      "Meanwhile, bring the milk and margarine to the boil (about 10 minutes on high in the microwave).",
+      "Add the egg mixture to the hot milk, reduce the heat, and bring back to the boil, stirring.",
+      "Fill 2 pastry shells with the filling and sprinkle with cinnamon. Refrigerate once cooled."
+    ],
+    note: "The pastry recipe makes 8 shells (extras can be frozen), but the filling recipe as given only fills 2 of them. Let me know if you'd like the filling scaled up to cover all 8."
+  },
+  {
+    id: "peppermint-crisp-tart",
+    title: "Peppermint Crisp Tart",
+    tag: "No-Bake",
+    servings: "",
+    cookTime: "6 hr chill",
+    calories: "",
+    ingredients: [
+      { qty: "500ml", name: "cream" },
+      { qty: "1 can", name: "caramel condensed milk" },
+      { qty: "1 packet", name: "tennis biscuits" },
+      { qty: "2", name: "peppermint crisp chocolates" },
+      { qty: "1 tsp", name: "peppermint essence" }
+    ],
+    steps: [
+      "Beat the condensed milk until smooth.",
+      "Beat the cream until stiff.",
+      "Fold the cream into the condensed milk and add the peppermint essence.",
+      "Crush one peppermint crisp chocolate and stir into the mixture.",
+      "Line a tart dish with tennis biscuits. Pour the mixture on top. Sprinkle with the other crushed peppermint crisp chocolate and a few crushed tennis biscuits.",
+      "Chill for at least 6 hours in the fridge."
+    ]
+  },
+  {
+    id: "baking-powder-vetkoek",
+    title: "Baking Powder Vetkoek",
+    tag: "Fried",
+    servings: "",
+    cookTime: "3-4 min per side",
+    calories: "",
+    ingredients: [
+      { qty: "2 cups", name: "all-purpose flour" },
+      { qty: "2 tsp", name: "baking powder" },
+      { qty: "1/2 tsp", name: "salt" },
+      { qty: "2", name: "large eggs" },
+      { qty: "3/4 cup", name: "milk (or water)" },
+      { qty: "as needed", name: "vegetable oil, for deep frying" }
+    ],
+    steps: [
+      "Heat about 2 to 3 inches of oil in a deep pan or pot over medium heat (around 175°C / 350°F).",
+      "Whisk the flour, baking powder, and salt together in a large bowl.",
+      "In a separate cup, lightly beat the eggs and milk together.",
+      "Pour the wet ingredients into the dry ingredients. Stir gently until just combined into a thick, sticky batter, do not overmix, or the vetkoek will become tough.",
+      "Dip a large spoon into the hot oil first to prevent sticking, scoop up a dollop of batter, and drop it carefully into the oil. Fry for about 3 to 4 minutes per side until golden brown and cooked through.",
+      "Remove with a slotted spoon and drain on paper towels."
+    ]
+  },
+  {
+    id: "grannys-vetkoek",
+    title: "Granny's Vetkoek",
+    tag: "Fried",
+    servings: "",
+    cookTime: "",
+    calories: "",
+    ingredients: [
+      { qty: "1 cup", name: "flour" },
+      { qty: "2 tsp", name: "baking powder" },
+      { qty: "pinch", name: "salt" },
+      { qty: "as needed", name: "water" },
+      { qty: "as needed", name: "oil, for frying" }
+    ],
+    steps: [
+      "Sift the flour, baking powder, and salt together.",
+      "Add water gradually until it forms a soft dough.",
+      "Cut the dough into pieces of your desired size.",
+      "Fry in hot oil until golden and cooked through."
+    ]
+  },
+  {
+    id: "sausages-mash-peas-onion-gravy",
+    title: "Beef Sausages, Mash, Peas & Onion Gravy",
+    tag: "Dinner",
+    servings: "3",
+    cookTime: "~40 min",
+    calories: "",
+    ingredients: [
+      { qty: "6", name: "beef sausages" },
+      { qty: "2 1/4 tsp", name: "cooking oil (sausages)" },
+      { qty: "750g", name: "potatoes, peeled and cut into even chunks (mash)" },
+      { qty: "30-45g", name: "butter (mash)" },
+      { qty: "75-112ml", name: "milk (mash)" },
+      { qty: "to taste", name: "salt (mash)" },
+      { qty: "to taste", name: "black pepper (mash)" },
+      { qty: "1 1/2", name: "onions, thinly sliced (gravy)" },
+      { qty: "2 1/4 tsp", name: "butter or oil (gravy)" },
+      { qty: "2 1/4 tsp", name: "plain flour (gravy)" },
+      { qty: "375ml", name: "beef stock (gravy)" },
+      { qty: "2 1/4 tsp", name: "Worcestershire sauce (gravy)" },
+      { qty: "3/4 tsp", name: "Dijon or wholegrain mustard, optional (gravy)" },
+      { qty: "to taste", name: "black pepper (gravy)" },
+      { qty: "190-225g", name: "frozen peas" },
+      { qty: "splash", name: "water (peas)" },
+      { qty: "pinch", name: "salt (peas)" }
+    ],
+    steps: [
+      "Potatoes (start first): put the chopped potatoes into a saucepan, cover with cold water, add a pinch of salt, and bring to the boil. Once boiling, reduce heat and simmer for 15-20 minutes until completely tender when pierced with a knife.",
+      "Sausages (start about 5 minutes after the potatoes): heat oil in a large frying pan over medium-high heat. Add the sausages and cook for 12-15 minutes, turning regularly, until browned and cooked through. Remove to a plate and loosely cover with foil. Don't clean the pan, the browned bits will flavor the gravy.",
+      "Onions: reduce the same pan to medium-low, add the sliced onions and butter or oil, and cook for 8-10 minutes, stirring occasionally, until soft and golden.",
+      "Gravy: sprinkle the flour over the onions and stir continuously for about 1 minute. Slowly pour in the beef stock, stirring as you pour. Add the Worcestershire sauce, mustard if using, and plenty of black pepper.",
+      "Bring the gravy to a gentle simmer and cook for 5-8 minutes until thickened, adjusting with a splash of water or stock if it gets too thick. Return the sausages to the gravy for the final 2-3 minutes.",
+      "Mash: once the potatoes are tender, drain well and return to the hot, empty saucepan for 1-2 minutes with the heat off to let excess moisture evaporate. Add the butter and mash, then gradually add the milk until creamy. Season well with salt and pepper. Avoid overworking the potatoes or they can turn gluey.",
+      "Peas: while finishing the mash, put the frozen peas in a small saucepan with a splash of water and a pinch of salt. Bring to a simmer and cook for 3-4 minutes, then drain.",
+      "To serve: plate creamy mash, top with peas, add two sausages per plate, and finish with a generous ladle of onion gravy."
+    ],
+    note: "Timing guide: potatoes 15-20 min, sausages 12-15 min (start about 5 min after the potatoes), onions 8-10 min, gravy 5-8 min, peas 3-4 min, so everything converges around the same time and nothing sits waiting for more than a couple of minutes."
+  },
+  {
+    id: "easy-pancakes",
+    title: "Easy Pancakes",
+    tag: "Breakfast",
+    servings: "2-3",
+    cookTime: "~15 min",
+    calories: "",
+    ingredients: [
+      { qty: "1 cup", name: "plain flour" },
+      { qty: "2 tbsp", name: "sugar, optional but recommended" },
+      { qty: "1 tsp", name: "baking powder" },
+      { qty: "pinch", name: "salt" },
+      { qty: "1", name: "egg" },
+      { qty: "3/4 cup", name: "milk" },
+      { qty: "1 tbsp", name: "melted butter (or oil)" }
+    ],
+    steps: [
+      "Whisk together the flour, sugar, baking powder, and salt in a bowl.",
+      "In another bowl or jug, whisk the egg, milk, and melted butter together.",
+      "Pour the wet ingredients into the dry and stir gently. Don't overmix, a few lumps are fine and keep the pancakes fluffy.",
+      "Heat a non-stick pan over medium heat and add a little butter or oil.",
+      "Pour in about 1/4 cup of batter per pancake.",
+      "When bubbles form on top, after about 1-2 minutes, flip and cook for another minute."
+    ],
+    note: "Too thick, add a splash of milk. Too runny, add a spoon of flour. Keep cooked pancakes warm in a low oven while you finish the batch. Serve with butter and maple syrup, honey and banana, berries and yogurt, or go savoury (skip the sugar) with bacon and eggs."
+  },
+  {
+    id: "roast-chicken-dinner",
+    title: "Roast Chicken Dinner",
+    tag: "Roast",
+    servings: "",
+    cookTime: "",
+    calories: "",
+    ingredients: [
+      { qty: "1", name: "whole chicken" },
+      { qty: "to taste", name: "olive oil or melted butter (chicken)" },
+      { qty: "to taste", name: "salt and black pepper (chicken)" },
+      { qty: "optional", name: "garlic, lemon, thyme, rosemary, or smoked paprika (chicken)" },
+      { qty: "as needed", name: "potatoes, for roasting" },
+      { qty: "to taste", name: "oil, salt and pepper (potatoes)" },
+      { qty: "1", name: "buttercup squash" },
+      { qty: "to taste", name: "olive oil, salt and pepper (squash)" },
+      { qty: "optional", name: "garlic or herbs (squash)" },
+      { qty: "as needed", name: "button mushrooms" },
+      { qty: "to taste", name: "olive oil, salt and pepper (mushrooms)" },
+      { qty: "optional", name: "garlic or herbs (mushrooms)" }
+    ],
+    steps: [
+      "Chicken: preheat the oven to 180°C. Season the chicken with olive oil or melted butter, salt, pepper, and any of garlic, lemon, thyme, rosemary, or smoked paprika. Roast uncovered, allowing about 20 minutes per 500g plus an extra 20 minutes, until the thickest part reaches 75°C internally.",
+      "Potatoes (start about 50 minutes before the chicken is due out): parboil the potatoes for 8-10 minutes, drain, and shake or rough up the edges. Toss with oil, salt, and pepper, then add to the oven alongside the chicken.",
+      "Squash (start about 40 minutes before the chicken is due out): cut the squash in half, scoop out the seeds, and cut into 2-3cm chunks or wedges. Toss with olive oil, salt, pepper, and optional garlic or herbs, then add to the oven. Chunks need 35-45 minutes, wedges 40-50 minutes.",
+      "Mushrooms (start about 25-30 minutes before the chicken is due out): toss whole or halved mushrooms with olive oil, salt, pepper, and optional garlic or herbs. Add to the oven, spaced out so they roast rather than steam. Whole mushrooms need 20-25 minutes, halved larger mushrooms 25-30 minutes.",
+      "Once the chicken is done, remove it and rest uncovered for 10-15 minutes before carving. If the potatoes or vegetables need extra crisping, increase the oven to 200°C during the resting time."
+    ],
+    note: "Overall timing at 180°C: chicken in, potatoes in at minus 50 min, squash in at minus 40 min, mushrooms in at minus 25 to 30 min, chicken out and rest 10-15 min, then serve. A half squash can be frozen for later, remove the seeds first and store airtight."
+  },
+  {
+    id: "mulled-wine",
+    title: "Mulled Wine",
+    tag: "Drink",
+    servings: "",
+    cookTime: "15-20 min",
+    calories: "",
+    ingredients: [
+      { qty: "750ml", name: "red wine" },
+      { qty: "2", name: "cinnamon sticks" },
+      { qty: "1/8 tsp", name: "ground cloves (start here)" },
+      { qty: "1/4 tsp", name: "ground ginger" },
+      { qty: "1/8 tsp", name: "ground nutmeg" },
+      { qty: "2", name: "mandarins" },
+      { qty: "1-2 tbsp", name: "sugar, honey, or maple syrup" }
+    ],
+    steps: [
+      "Add the wine, cinnamon sticks, cloves, ginger, and nutmeg to a saucepan.",
+      "Halve or slice the mandarins and add them to the pan, along with the sugar, honey, or maple syrup.",
+      "Warm gently over low heat for 15-20 minutes, keeping it well below a boil throughout.",
+      "Taste, and add another small pinch of cloves if it needs it.",
+      "Strain out the spices and mandarin pieces before serving, if you prefer a smoother pour."
+    ],
+    note: "Ground spices can leave the wine a little gritty, so straining through a fine sieve before serving helps if you'd rather it be clear. Mandarin prep wasn't specified in the original, halved is assumed here so they release both juice and zest."
+  },
+  {
+    id: "mulled-wine-whole-spice",
+    title: "Mulled Wine (Whole Spice)",
+    tag: "Drink",
+    servings: "",
+    cookTime: "15-20 min",
+    calories: "",
+    ingredients: [
+      { qty: "750ml", name: "dry fruity red wine" },
+      { qty: "1", name: "orange" },
+      { qty: "1/2", name: "lemon" },
+      { qty: "2", name: "cinnamon sticks" },
+      { qty: "4-5", name: "whole cloves" },
+      { qty: "2", name: "star anise" },
+      { qty: "3-4 slices", name: "fresh ginger" },
+      { qty: "1/4 tsp", name: "freshly grated nutmeg" },
+      { qty: "2-3 tbsp", name: "brown sugar" },
+      { qty: "50ml", name: "brandy or Cointreau" },
+      { qty: "optional", name: "tiny pinch of allspice, or a strip of vanilla (not both)" }
+    ],
+    steps: [
+      "Slice the orange and lemon and add them to a saucepan along with the wine.",
+      "Add the cinnamon sticks, cloves, star anise, ginger, nutmeg, and brown sugar.",
+      "Warm gently over low heat for 15-20 minutes, keeping it well below a boil throughout.",
+      "Stir in the brandy or Cointreau, and the allspice or vanilla if using, in the last few minutes of warming.",
+      "Taste and adjust sugar if needed, then strain before serving if you'd prefer a clear pour."
+    ],
+    note: "Flavour profile is orange, cinnamon, clove, and star anise up front, with ginger and nutmeg underneath. Whole spices give a clearer result than the ground-spice version without needing to strain as carefully."
+  },
+  {
+    id: "mashed-potato",
+    title: "Mashed Potato",
+    tag: "Side",
+    servings: "",
+    cookTime: "~25 min",
+    calories: "",
+    ingredients: [
+      { qty: "2 medium", name: "potatoes, peeled and chopped into even chunks" },
+      { qty: "25g", name: "butter (about 1 3/4 tbsp)" },
+      { qty: "30-50ml", name: "milk, warmed" },
+      { qty: "1/4 tsp", name: "salt for the cooking water, plus extra to taste" },
+      { qty: "good pinch", name: "black pepper" },
+      { qty: "optional", name: "1-2 tbsp grated tasty cheddar, or 1/2 tsp Dijon mustard" }
+    ],
+    steps: [
+      "Peel and chop the potatoes into even chunks.",
+      "Boil in salted water for 15-20 minutes, until very soft.",
+      "Drain thoroughly and let them steam-dry in the pot for 1-2 minutes.",
+      "Mash in the butter first until melted.",
+      "Add 30ml of the warm milk and mash, then add a little more until creamy.",
+      "Season with salt and pepper, taste, and adjust."
+    ],
+    note: "The secret: finish with a tiny extra knob of butter on top and plenty of freshly ground black pepper. Quantities are for two medium potatoes."
+  },
+  {
+    id: "hearty-beef-stew",
+    title: "Hearty Beef Stew",
+    tag: "Slow Cooker",
+    servings: "",
+    cookTime: "7-8 hr on low",
+    calories: "",
+    ingredients: [
+      { qty: "550g", name: "chuck steak" },
+      { qty: "150-200g", name: "button mushrooms" },
+      { qty: "3", name: "carrots" },
+      { qty: "2 sticks", name: "celery" },
+      { qty: "1 medium", name: "potato" },
+      { qty: "1 large", name: "brown onion" },
+      { qty: "3 cloves", name: "garlic" },
+      { qty: "3 tbsp", name: "pizza sauce" },
+      { qty: "200ml", name: "dry red wine" },
+      { qty: "250ml", name: "chicken stock" },
+      { qty: "1", name: "beef Oxo cube" },
+      { qty: "1 tbsp", name: "Worcestershire sauce" },
+      { qty: "1 tsp", name: "dried thyme" },
+      { qty: "1/2 tsp", name: "mustard powder" },
+      { qty: "1-2 tbsp", name: "plain flour" },
+      { qty: "1 tbsp", name: "olive oil" },
+      { qty: "to taste", name: "salt and pepper (add at the end)" }
+    ],
+    steps: [
+      "Brown the beef in the olive oil, then remove it from the pan.",
+      "Brown the onion and celery in the same pan.",
+      "Add the garlic, thyme, mustard powder, and pizza sauce.",
+      "Sprinkle the flour over the browned beef, or stir it in after returning the beef to the pan. Cook for another minute to remove the raw flour taste. Add the red wine and simmer for 3-5 minutes.",
+      "Transfer everything to the slow cooker.",
+      "Add the chicken stock, crumbled Oxo cube, Worcestershire sauce, carrots, and potato.",
+      "Cook on LOW for 7-8 hours.",
+      "Add the mushrooms for the final 1 1/2 to 2 hours if you prefer them firmer.",
+      "Taste the gravy and adjust the seasoning before serving. If it's too thin, thicken with a little flour mixed with cold water."
+    ],
+    note: "Hold off on salt until the stew has finished cooking, since the Oxo cube, stock, and Worcestershire sauce already add plenty. Don't skip browning the beef or reducing the wine, they add a lot of flavour for very little effort. Quantities are for 550g of beef."
+  }
+];
+
+const grid = document.getElementById('grid');
+const empty = document.getElementById('empty');
+const listView = document.getElementById('listView');
+const detail = document.getElementById('detail');
+const search = document.getElementById('search');
+
+function renderGrid(items){
+  grid.innerHTML = '';
+  if(items.length === 0){
+    empty.style.display = 'block';
+    return;
+  }
+  empty.style.display = 'none';
+  items.forEach(r => {
+    const card = document.createElement('div');
+    card.className = 'rcard';
+    card.innerHTML = `
+      <span class="tab">${r.tag}</span>
+      <h3>${r.title}</h3>
+      <div class="meta">
+        <span>&#9202; ${r.cookTime}</span>
+        <span>&#127860; ${r.servings} serv</span>
+      </div>
+    `;
+    card.addEventListener('click', () => showDetail(r.id));
+    grid.appendChild(card);
+  });
+}
+
+function showDetail(id){
+  const r = recipes.find(x => x.id === id);
+  if(!r) return;
+  listView.style.display = 'none';
+  detail.style.display = 'block';
+  detail.innerHTML = `
+    <button class="back" id="backBtn">&#8592; Back to recipe box</button>
+    <div class="detail-card">
+      <span class="tab">${r.tag}</span>
+      <h2>${r.title}</h2>
+      <div class="detail-meta">
+        <span>&#9202; <strong>${r.cookTime}</strong></span>
+        <span>&#127860; <strong>${r.servings}</strong> servings</span>
+        <span>&#128202; <strong>${r.calories}</strong></span>
+      </div>
+      <h4 class="section">Ingredients</h4>
+      <ul class="ingredients">
+        ${r.ingredients.map(i => `<li><span class="qty">${i.qty}</span><span>${i.name}</span></li>`).join('')}
+      </ul>
+      <h4 class="section">Method</h4>
+      <ol class="steps">
+        ${r.steps.map(s => `<li>${s}</li>`).join('')}
+      </ol>
+      ${r.note ? `<div class="note">${r.note}</div>` : ''}
+    </div>
+  `;
+  document.getElementById('backBtn').addEventListener('click', () => {
+    detail.style.display = 'none';
+    listView.style.display = 'block';
+    window.scrollTo(0,0);
+  });
+  window.scrollTo(0,0);
+}
+
+search.addEventListener('input', () => {
+  const q = search.value.trim().toLowerCase();
+  if(!q){
+    renderGrid(recipes);
+    return;
+  }
+  const filtered = recipes.filter(r => {
+    const inTitle = r.title.toLowerCase().includes(q);
+    const inIngredients = r.ingredients.some(i => i.name.toLowerCase().includes(q));
+    return inTitle || inIngredients;
+  });
+  renderGrid(filtered);
+});
+
+renderGrid(recipes);
+</script>
+
+</body>
+</html>
