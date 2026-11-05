@@ -1,0 +1,19 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512">
+  <rect width="512" height="512" rx="96" fill="#C89B3C"/>
+  <!-- Fork -->
+  <g fill="#FAF8F3">
+    <rect x="168" y="120" width="20" height="180" rx="10"/>
+    <rect x="148" y="120" width="8" height="80" rx="4"/>
+    <rect x="192" y="120" width="8" height="80" rx="4"/>
+    <path d="M148 200 Q158 230 178 230 Q198 230 208 200Z" fill="#FAF8F3"/>
+  </g>
+  <!-- Knife -->
+  <g fill="#FAF8F3">
+    <rect x="310" y="120" width="20" height="180" rx="10"/>
+    <path d="M310 120 L330 120 L340 200 Q340 240 320 240 Q310 240 310 200Z" fill="#FAF8F3"/>
+  </g>
+  <!-- Plate -->
+  <ellipse cx="256" cy="340" rx="110" ry="16" fill="rgba(250,248,243,0.3)"/>
+  <ellipse cx="256" cy="330" rx="95" ry="12" fill="none" stroke="#FAF8F3" stroke-width="8"/>
+  <ellipse cx="256" cy="330" rx="60" ry="7" fill="rgba(250,248,243,0.4)"/>
+</svg>
